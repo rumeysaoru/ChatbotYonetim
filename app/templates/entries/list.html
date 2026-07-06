@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıtlarım — MSKÜ Veri Girişi</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root { --navy:#1e3d59; --navy-dark:#14293c; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:#f0f3f7; font-size:14px; color:#111827; }
+        .topbar { background:var(--navy); color:#fff; height:56px; display:flex; align-items:center; padding:0 24px; gap:16px; position:sticky; top:0; z-index:100; }
+        .topbar-logo { display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff; flex-shrink:0; }
+        .topbar-logo img { width:32px; height:32px; object-fit:contain; }
+        .topbar-logo-text { font-size:13px; font-weight:700; letter-spacing:0.03em; line-height:1.2; }
+        .topbar-logo-text small { display:block; font-size:10px; font-weight:400; opacity:0.7; }
+        .topbar-nav { display:flex; align-items:center; gap:4px; margin-left:auto; }
+        .topbar-nav a { color:rgba(255,255,255,0.85); text-decoration:none; font-size:13px; font-weight:500; padding:6px 12px; border-radius:3px; transition:background 0.15s; white-space:nowrap; }
+        .topbar-nav a:hover, .topbar-nav a.active { background:rgba(255,255,255,0.15); color:#fff; }
+        .topbar-user { display:flex; align-items:center; gap:10px; margin-left:16px; padding-left:16px; border-left:1px solid rgba(255,255,255,0.2); flex-shrink:0; }
+        .topbar-user span { font-size:13px; opacity:0.85; }
+        .topbar-user a { color:rgba(255,255,255,0.7); text-decoration:none; font-size:12px; border:1px solid rgba(255,255,255,0.3); padding:4px 10px; border-radius:3px; transition:all 0.15s; }
+        .topbar-user a:hover { background:rgba(255,255,255,0.15); color:#fff; }
+        .nav-toggle { display:none; background:none; border:1px solid rgba(255,255,255,0.35); color:#fff; border-radius:3px; padding:5px 9px; cursor:pointer; margin-left:auto; font-size:16px; line-height:1; }
+        .topbar-nav-user-mobile { display:none; }
+        .page-header { background:#fff; border-bottom:1px solid #e5e7eb; padding:20px 24px 16px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        .page-header h1 { font-size:20px; font-weight:700; color:var(--navy); margin:0 0 2px; }
+        .page-header p { font-size:13px; color:#6b7280; margin:0; }
+        .btn-new { background:var(--navy); color:#fff; text-decoration:none; border-radius:3px; font-size:13px; font-weight:600; padding:8px 18px; transition:background 0.15s; white-space:nowrap; }
+        .btn-new:hover { background:var(--navy-dark); color:#fff; }
+        .page-body { padding:24px; }
+        .data-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:4px; overflow:hidden; overflow-x:auto; }
+        .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .data-table thead th { background:var(--navy); color:#fff; font-weight:600; font-size:11px; letter-spacing:0.04em; text-transform:uppercase; padding:10px 14px; border:none; white-space:nowrap; }
+        .data-table tbody tr { border-bottom:1px solid #f3f4f6; transition:background 0.1s; }
+        .data-table tbody tr:hover { background:#f9fafb; }
+        .data-table tbody tr:last-child { border-bottom:none; }
+        .data-table td { padding:12px 14px; vertical-align:middle; color:#374151; }
+        .td-content { max-width:400px; color:#6b7280; }
+        .badge-approved { background:#d1fae5; color:#065f46; font-size:11px; font-weight:600; padding:3px 8px; border-radius:20px; }
+        .badge-pending  { background:#fef3c7; color:#92400e; font-size:11px; font-weight:600; padding:3px 8px; border-radius:20px; }
+        .btn-edit { color:var(--navy); text-decoration:none; font-size:12px; font-weight:600; border:1px solid #d1d5db; padding:4px 12px; border-radius:3px; transition:all 0.15s; }
+        .btn-edit:hover { background:var(--navy); color:#fff; border-color:var(--navy); }
+        .empty-row td { text-align:center; color:#9ca3af; padding:48px; }
+
+        .entry-cards { display:none; }
+        .entry-card { background:#fff; border:1px solid #e5e7eb; border-radius:4px; padding:16px; margin-bottom:10px; }
+        .entry-card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+        .entry-card-content { font-size:13px; color:#6b7280; margin-bottom:12px; line-height:1.5; }
+        .entry-card-meta { font-size:12px; color:#9ca3af; margin-bottom:12px; }
+        .entry-card-actions { display:flex; justify-content:flex-end; }
+
+        @media (max-width:700px) {
+            .nav-toggle { display:block; }
+            .topbar-nav { display:none; margin-left:0; }
+            .topbar-nav.open { display:flex; flex-direction:column; position:absolute; top:56px; left:0; right:0; background:var(--navy-dark); padding:8px 16px 16px; gap:2px; z-index:99; }
+            .topbar-nav.open a { padding:10px 12px; }
+            .topbar-user { display:none; }
+            .topbar { flex-wrap:wrap; height:auto; min-height:56px; padding:0 16px; position:relative; }
+            .data-table-wrap { display:none; }
+            .entry-cards { display:block; }
+            .page-body { padding:16px; }
+            .page-header { padding:16px; flex-wrap:wrap; }
+
+            .topbar-nav-user-mobile { display:flex; flex-direction:column; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.15); }
+            .topbar-nav-user-mobile span { color:rgba(255,255,255,0.6); font-size:12px; padding:4px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <a href="/kayitlar" class="topbar-logo">
+        <img src="{{ url_for('static', path='/mskü.amblem.png') }}" alt="MSKÜ">
+        <div class="topbar-logo-text">MSKÜ Chatbot<small>Veri Giriş Sistemi</small></div>
+    </a>
+    <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+    <nav class="topbar-nav" id="topbarNav">
+        <a href="/kayitlar/yeni">Yeni Kayıt</a>
+        <a href="/kayitlar" class="active">Kayıtlarım</a>
+        <div class="topbar-nav-user-mobile">
+            <span>Personel</span>
+            <a href="/logout">Çıkış Yap</a>
+        </div>
+    </nav>
+    <div class="topbar-user">
+        <span>Personel</span>
+        <a href="/logout">Çıkış Yap</a>
+    </div>
+</header>
+
+<div class="page-header">
+    <div>
+        <h1>Kayıtlarım</h1>
+        <p>Girdiğiniz tüm veriler ve durumları</p>
+    </div>
+    <a href="/kayitlar/yeni" class="btn-new">+ Yeni Kayıt</a>
+</div>
+
+<div class="page-body">
+
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>İçerik</th>
+                    <th>Durum</th>
+                    <th>Tarih</th>
+                    <th style="text-align:center">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr>
+                    <td class="td-content"><small>{{ entry.content }}</small></td>
+                    <td>
+                        {% if entry.status == "approved" %}
+                        <span class="badge-approved">Onaylandı</span>
+                        {% else %}
+                        <span class="badge-pending">Bekliyor</span>
+                        {% endif %}
+                    </td>
+                    <td style="white-space:nowrap;color:#6b7280"><small>{{ entry.created_at.strftime("%d.%m.%Y %H:%M") }}</small></td>
+                    <td style="text-align:center">
+                        <a href="/kayitlar/{{ entry.id }}/duzenle" class="btn-edit">Düzenle</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="empty-row">
+                    <td colspan="4">Henüz hiç kaydınız yok. <a href="/kayitlar/yeni">İlk kaydı oluşturun →</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="entry-cards">
+        {% for entry in entries %}
+        <div class="entry-card">
+            <div class="entry-card-top">
+                {% if entry.status == "approved" %}
+                <span class="badge-approved">Onaylandı</span>
+                {% else %}
+                <span class="badge-pending">Bekliyor</span>
+                {% endif %}
+                <small style="color:#9ca3af">{{ entry.created_at.strftime("%d.%m.%Y") }}</small>
+            </div>
+            <div class="entry-card-content">{{ entry.content }}</div>
+            <div class="entry-card-actions">
+                <a href="/kayitlar/{{ entry.id }}/duzenle" class="btn-edit">Düzenle</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="entry-card" style="text-align:center;color:#9ca3af">
+            Henüz hiç kaydınız yok. <a href="/kayitlar/yeni">İlk kaydı oluşturun →</a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+function toggleNav() { document.getElementById('topbarNav').classList.toggle('open'); }
+</script>
+</body>
+</html>

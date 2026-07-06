@@ -10,4 +10,7 @@ python-dotenv
 pydantic-settings
 anthropic
 reportlab
-
+matplotlib
+requests
+google-genai
+slowapi

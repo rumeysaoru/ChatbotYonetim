@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 480
 
    
-    anthropic_api_key: str = ""
+    gemini_api_key: str = ""
 
     class Config:
         env_file = ".env"

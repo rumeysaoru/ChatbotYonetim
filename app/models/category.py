@@ -12,14 +12,22 @@ from app.database import Base
 class Category(Base):
     __tablename__ = "categories"
     __table_args__ = (
-        UniqueConstraint("name", "faculty_id", name="uq_category_name_per_faculty"),
+        UniqueConstraint(
+            "name",
+            "working_unit_id",
+            name="uq_category_name_per_working_unit",
+        ),
     )
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(120), nullable=False)
     description = Column(String(500), nullable=True)
 
-    faculty_id = Column(Integer, ForeignKey("faculties.id"), nullable=False)
+    working_unit_id = Column(
+        Integer,
+        ForeignKey("working_units.id"),
+        nullable=False,
+    )
 
     created_by_ai = Column(Integer, default=0, nullable=False)
 
@@ -27,11 +35,10 @@ class Category(Base):
 
     created_at = Column(DateTime, server_default=func.now())
 
-    faculty = relationship("Faculty")
+    working_unit = relationship("WorkingUnit")
     creator = relationship("User")
     entries = relationship(
         "Entry",
         back_populates="category",
         foreign_keys="Entry.category_id",
     )
-

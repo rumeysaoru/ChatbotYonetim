@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıtlar — MSKÜ Yönetici Paneli</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root { --navy:#1e3d59; --navy-dark:#14293c; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:#f0f3f7; font-size:14px; color:#111827; }
+
+        .topbar { background:var(--navy); color:#fff; height:56px; display:flex; align-items:center; padding:0 24px; position:sticky; top:0; z-index:100; gap:16px; }
+        .topbar-logo { display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff; flex-shrink:0; }
+        .topbar-logo img { width:32px; height:32px; object-fit:contain; }
+        .topbar-logo-text { font-size:13px; font-weight:700; line-height:1.2; }
+        .topbar-logo-text small { display:block; font-size:10px; font-weight:400; opacity:0.7; }
+        .topbar-nav { display:flex; align-items:center; gap:4px; margin-left:auto; }
+        .topbar-nav a { color:rgba(255,255,255,0.85); text-decoration:none; font-size:13px; font-weight:500; padding:6px 12px; border-radius:3px; white-space:nowrap; }
+        .topbar-nav a:hover, .topbar-nav a.active { background:rgba(255,255,255,0.15); color:#fff; }
+        .topbar-user { display:flex; align-items:center; gap:10px; margin-left:16px; padding-left:16px; border-left:1px solid rgba(255,255,255,0.2); flex-shrink:0; }
+        .topbar-user span { font-size:13px; opacity:0.85; }
+        .topbar-user a { color:rgba(255,255,255,0.7); text-decoration:none; font-size:12px; border:1px solid rgba(255,255,255,0.3); padding:4px 10px; border-radius:3px; }
+        .topbar-user a:hover { background:rgba(255,255,255,0.15); color:#fff; }
+        .nav-toggle { display:none; background:none; border:1px solid rgba(255,255,255,0.35); color:#fff; border-radius:3px; padding:5px 9px; cursor:pointer; margin-left:auto; font-size:16px; line-height:1; }
+        .topbar-nav-user-mobile { display:none; }
+
+        /* PAGE HEADER — başlık + filtreler yan yana */
+        .page-header {
+            background:#fff;
+            padding:16px 24px;
+            border-bottom:1px solid #e5e7eb;
+            display:flex;
+            align-items:center;
+            gap:16px;
+            flex-wrap:wrap;
+        }
+        .page-header-title h1 { font-size:20px; font-weight:700; color:var(--navy); margin:0 0 2px; white-space:nowrap; }
+        .page-header-title p { font-size:13px; color:#6b7280; margin:0; white-space:nowrap; }
+        .filter-group {
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            align-items:center;
+            margin-left:auto;
+        }
+        .filter-group input,
+        .filter-group select {
+            border:1px solid #d1d5db;
+            border-radius:3px;
+            padding:7px 10px;
+            font-size:13px;
+            color:#374151;
+            background:#fff;
+            height:36px;
+        }
+        .filter-group input[type="text"] { min-width:180px; }
+        .filter-group input[type="date"] { width:140px; }
+
+        /* BULK BAR */
+        .bulk-bar { display:none; background:#1e3d59; color:#fff; padding:10px 24px; align-items:center; gap:12px; }
+        .bulk-bar.visible { display:flex; }
+        .bulk-bar span { font-size:13px; }
+        .btn-bulk-approve { background:#fff; color:#1e3d59; border:none; border-radius:3px; font-size:13px; font-weight:600; padding:7px 16px; cursor:pointer; }
+        .btn-bulk-approve:hover { background:#e8edf2; }
+        .btn-bulk-cancel { background:none; border:1px solid rgba(255,255,255,0.4); color:#fff; border-radius:3px; font-size:13px; padding:7px 16px; cursor:pointer; }
+        .btn-bulk-cancel:hover { background:rgba(255,255,255,0.1); }
+
+        .page-body { padding:24px; }
+
+        .data-table-wrap { background:#fff; border-radius:4px; border:1px solid #e5e7eb; overflow-x:auto; }
+        .data-table { width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed; }
+        .data-table thead th { background:var(--navy); color:#fff; padding:10px 14px; font-size:11px; text-transform:uppercase; white-space:nowrap; overflow:hidden; }
+        .data-table td { padding:12px 14px; border-bottom:1px solid #f3f4f6; vertical-align:middle; overflow:hidden; text-overflow:ellipsis; }
+        .data-table tbody tr.selected { background:#eff6ff; }
+
+        /* Sütun genişlikleri */
+        .col-check  { width:40px; }
+        .col-unit   { width:150px; }
+        .col-content{ width:220px; }
+        .col-cat    { width:130px; }
+        .col-ai     { width:120px; }
+        .col-status { width:120px; }
+        .col-assign { width:220px; }
+
+        .badge-approved   { background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:20px; font-size:11px; white-space:nowrap; }
+        .badge-pending    { background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:20px; font-size:11px; white-space:nowrap; }
+        .badge-categorized{ background:#dbeafe; color:#1e40af; padding:3px 8px; border-radius:20px; font-size:11px; white-space:nowrap; }
+        .badge-ai         { background:#dbeafe; color:#1e40af; padding:3px 8px; border-radius:20px; font-size:11px; white-space:nowrap; }
+
+        .assign-form { display:flex; gap:6px; align-items:center; }
+        .assign-form select { border:1px solid #d1d5db; padding:5px; font-size:12px; border-radius:3px; flex:1; min-width:0; }
+        .btn-assign { background:var(--navy); color:#fff; border:none; padding:5px 10px; border-radius:3px; font-size:12px; cursor:pointer; white-space:nowrap; }
+        .btn-assign:hover { background:var(--navy-dark); }
+        .btn-assign.loading { opacity:0.6; cursor:not-allowed; }
+        .btn-assign.done { background:#059669; }
+
+        .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+        .toast { background:#1e3d59; color:#fff; padding:12px 20px; border-radius:4px; font-size:13px; box-shadow:0 4px 12px rgba(0,0,0,0.15); opacity:0; transform:translateY(10px); transition:all 0.3s; }
+        .toast.show { opacity:1; transform:translateY(0); }
+        .toast.error { background:#dc2626; }
+
+        @media (max-width:900px) {
+            .page-header { flex-direction:column; align-items:flex-start; }
+            .filter-group { margin-left:0; }
+        }
+        @media (max-width:700px) {
+            .nav-toggle { display:block; }
+            .topbar-nav { display:none; margin-left:0; }
+            .topbar-nav.open { display:flex; flex-direction:column; position:absolute; top:56px; left:0; right:0; background:var(--navy-dark); padding:8px 16px 16px; gap:2px; z-index:99; }
+            .topbar-nav.open a { padding:10px 12px; }
+            .topbar-user { display:none; }
+            .topbar { flex-wrap:wrap; height:auto; min-height:56px; padding:0 16px; position:relative; }
+            .page-body { padding:16px; }
+            .page-header { padding:16px; }
+            .topbar-nav-user-mobile { display:flex; flex-direction:column; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.15); }
+            .topbar-nav-user-mobile span { color:rgba(255,255,255,0.6); font-size:12px; padding:4px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <a href="/admin/kayitlar" class="topbar-logo">
+        <img src="{{ url_for('static', path='/mskü.amblem.png') }}" alt="MSKÜ">
+        <div class="topbar-logo-text">MSKÜ Chatbot<small>Yönetici Paneli</small></div>
+    </a>
+    <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+    <nav class="topbar-nav" id="topbarNav">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/kayitlar" class="active">Kayıtlar</a>
+        <a href="/admin/kategoriler">Kategoriler</a>
+        <a href="/admin/birimler">Çalışma Birimleri</a>
+        <a href="/admin/kullanicilar">Kullanıcılar</a>
+        <div class="topbar-nav-user-mobile">
+            <span>Yönetici</span>
+            <a href="/logout">Çıkış Yap</a>
+        </div>
+    </nav>
+    <div class="topbar-user">
+        <span>Yönetici</span>
+        <a href="/logout">Çıkış Yap</a>
+    </div>
+</header>
+
+<!-- Başlık + Filtreler yan yana -->
+<div class="page-header">
+    <div class="page-header-title">
+        <h1>Tüm Kayıtlar</h1>
+        <p>Çalışma birimlerine göre kayıtlar</p>
+    </div>
+    <div class="filter-group">
+        <input type="date" id="date-from" value="{{ date_from }}" onchange="applyFilter()">
+        <input type="date" id="date-to" value="{{ date_to }}" onchange="applyFilter()">
+        <input type="text" id="search-input" placeholder="İçerikte ara..." value="{{ search }}" onkeydown="if(event.key==='Enter') applyFilter()">
+        <select onchange="applyFilter()" id="filter-unit">
+            <option value="">Tüm Birimler</option>
+            {% for unit in working_units %}
+            <option value="{{ unit.id }}" {% if selected_unit == unit.id %}selected{% endif %}>{{ unit.name }}</option>
+            {% endfor %}
+        </select>
+        <select onchange="applyFilter()" id="filter-status">
+            <option value="">Tüm Durumlar</option>
+            <option value="pending" {% if selected_status == "pending" %}selected{% endif %}>Bekliyor</option>
+            <option value="categorized" {% if selected_status == "categorized" %}selected{% endif %}>Kategorize Edildi</option>
+            <option value="approved" {% if selected_status == "approved" %}selected{% endif %}>Onaylandı</option>
+        </select>
+    </div>
+</div>
+
+<!-- Toplu Onay Barı -->
+<div class="bulk-bar" id="bulkBar">
+    <span id="bulkCount">0 kayıt seçildi</span>
+    <button class="btn-bulk-approve" onclick="bulkApprove()">Seçilenleri Onayla</button>
+    <button class="btn-bulk-cancel" onclick="clearSelection()">İptal</button>
+</div>
+
+<div class="page-body">
+    <div class="data-table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="col-check"><input type="checkbox" id="select-all" onchange="toggleAll(this)"></th>
+                    <th class="col-unit">Birim</th>
+                    <th class="col-content">İçerik</th>
+                    <th class="col-cat">Kategori</th>
+                    <th class="col-ai">AI</th>
+                    <th class="col-status">Durum</th>
+                    <th class="col-assign">Atama</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                <tr id="row-{{ entry.id }}">
+                    <td class="col-check">
+                        <input type="checkbox" class="entry-checkbox" value="{{ entry.id }}" onchange="updateSelection()">
+                    </td>
+                    <td class="col-unit" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ entry.working_unit.name }}</td>
+                    <td class="col-content" style="color:#6b7280; cursor:pointer;" onclick="showDetail({{ entry.id }})">
+                         {{ entry.content[:80] }}{% if entry.content|length > 80 %}...{% endif %}
+                    </td>
+                    <td class="col-cat" id="cat-{{ entry.id }}">{{ entry.category.name if entry.category else "—" }}</td>
+                    <td class="col-ai">
+                        {% if entry.ai_suggested_category %}
+                        <span class="badge-ai">{{ entry.ai_suggested_category.name }}</span>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    <td class="col-status" id="status-{{ entry.id }}">
+                        {% if entry.status == "approved" %}
+                        <span class="badge-approved">Onaylandı</span>
+                        {% elif entry.status == "categorized" %}
+                        <span class="badge-categorized">Kategorize Edildi</span>
+                        {% else %}
+                        <span class="badge-pending">Bekliyor</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-assign">
+                        <div class="assign-form">
+                            <input type="hidden" id="version-{{ entry.id }}" value="{{ entry.version }}">
+                            <select id="select-{{ entry.id }}">
+                                {% for cat in categories %}
+                                {% if cat.working_unit_id == entry.working_unit_id %}
+                                <option value="{{ cat.id }}"
+                                    {% if entry.category_id == cat.id %}selected{% endif %}
+                                    {% if entry.ai_suggested_category_id == cat.id and not entry.category_id %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            <button class="btn-assign" onclick="assign({{ entry.id }})">Ata</button>
+                        </div>
+                    </td>
+                    <script type="application/json" id="content-{{ entry.id }}">{{ entry.content | tojson }}</script>
+                    <script type="application/json" id="meta-{{ entry.id }}">{{ {"date": entry.created_at.strftime('%d.%m.%Y %H:%M'), "unit": entry.working_unit.name} | tojson }}</script>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align:center; color:#9ca3af; padding:32px;">Henüz hiç kayıt yok.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if total_pages > 1 %}
+<div style="display:flex; justify-content:center; align-items:center; gap:12px; padding:20px;">
+    {% if page > 1 %}
+    <a href="/admin/kayitlar?page={{ page - 1 }}{% if selected_unit %}&working_unit_id={{ selected_unit }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="background:var(--navy); color:#fff; text-decoration:none; padding:7px 16px; border-radius:3px; font-size:13px; font-weight:600;">← Önceki</a>
+    {% endif %}
+    <span style="font-size:13px; color:#6b7280;">{{ page }} / {{ total_pages }}</span>
+    {% if page < total_pages %}
+    <a href="/admin/kayitlar?page={{ page + 1 }}{% if selected_unit %}&working_unit_id={{ selected_unit }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="background:var(--navy); color:#fff; text-decoration:none; padding:7px 16px; border-radius:3px; font-size:13px; font-weight:600;">Sonraki →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Detay Modal -->
+<div id="detailModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:4px; padding:32px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; position:relative;">
+        <button onclick="closeDetail()" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:#6b7280;">✕</button>
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:#6b7280; margin-bottom:4px;" id="detail-unit"></div>
+        <div style="font-size:11px; color:#9ca3af; margin-bottom:16px;" id="detail-date"></div>
+        <div style="font-size:14px; color:#111827; line-height:1.7; white-space:pre-wrap;" id="detail-content"></div>
+    </div>
+</div>
+
+<script>
+function toggleNav() {
+    document.getElementById('topbarNav').classList.toggle('open');
+}
+
+function applyFilter() {
+    const unit = document.getElementById('filter-unit').value;
+    const status = document.getElementById('filter-status').value;
+    const search = document.getElementById('search-input').value.trim();
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+    let url = '/admin/kayitlar?page=1';
+    if (unit) url += '&working_unit_id=' + unit;
+    if (status) url += '&status=' + status;
+    if (search) url += '&search=' + encodeURIComponent(search);
+    if (dateFrom) url += '&date_from=' + dateFrom;
+    if (dateTo) url += '&date_to=' + dateTo;
+    window.location.href = url;
+}
+
+function toggleAll(checkbox) {
+    document.querySelectorAll('.entry-checkbox').forEach(cb => {
+        cb.checked = checkbox.checked;
+        cb.closest('tr').classList.toggle('selected', checkbox.checked);
+    });
+    updateSelection();
+}
+
+function updateSelection() {
+    const checked = document.querySelectorAll('.entry-checkbox:checked');
+    const bulkBar = document.getElementById('bulkBar');
+    const bulkCount = document.getElementById('bulkCount');
+    if (checked.length > 0) {
+        bulkBar.classList.add('visible');
+        bulkCount.textContent = checked.length + ' kayıt seçildi';
+    } else {
+        bulkBar.classList.remove('visible');
+        document.getElementById('select-all').checked = false;
+    }
+    document.querySelectorAll('.entry-checkbox').forEach(cb => {
+        cb.closest('tr').classList.toggle('selected', cb.checked);
+    });
+}
+
+function clearSelection() {
+    document.querySelectorAll('.entry-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('select-all').checked = false;
+    document.getElementById('bulkBar').classList.remove('visible');
+    document.querySelectorAll('tr.selected').forEach(tr => tr.classList.remove('selected'));
+}
+
+async function bulkApprove() {
+    const checked = document.querySelectorAll('.entry-checkbox:checked');
+    if (checked.length === 0) return;
+    const ids = Array.from(checked).map(cb => cb.value).join(',');
+    const formData = new FormData();
+    formData.append('entry_ids', ids);
+    try {
+        const response = await fetch('/admin/kayitlar/toplu-onayla', {
+            method: 'POST',
+            body: formData,
+            redirect: 'manual',
+        });
+        if (response.ok || response.type === 'opaqueredirect') {
+            checked.forEach(cb => {
+                const statusEl = document.getElementById('status-' + cb.value);
+                if (statusEl) statusEl.innerHTML = '<span class="badge-approved">Onaylandı</span>';
+            });
+            showToast(checked.length + ' kayıt başarıyla onaylandı.');
+            clearSelection();
+        } else {
+            showToast('Hata oluştu.', true);
+        }
+    } catch (e) {
+        showToast('Bağlantı hatası.', true);
+    }
+}
+
+function showToast(message, isError = false) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (isError ? ' error' : '');
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+async function assign(entryId) {
+    const select = document.getElementById('select-' + entryId);
+    const version = document.getElementById('version-' + entryId).value;
+    const categoryId = select.value;
+    const btn = select.nextElementSibling;
+    if (!categoryId) {
+        showToast('Lütfen bir kategori seçin.', true);
+        return;
+    }
+    btn.classList.add('loading');
+    btn.textContent = '...';
+    const formData = new FormData();
+    formData.append('category_id', categoryId);
+    formData.append('expected_version', version);
+    try {
+        const response = await fetch('/admin/kayitlar/' + entryId + '/kategori', {
+            method: 'POST',
+            body: formData,
+            redirect: 'manual',
+        });
+        if (response.ok || response.type === 'opaqueredirect') {
+            document.getElementById('status-' + entryId).innerHTML = '<span class="badge-approved">Onaylandı</span>';
+            document.getElementById('cat-' + entryId).textContent = select.options[select.selectedIndex].text;
+            document.getElementById('version-' + entryId).value = parseInt(version) + 1;
+            btn.classList.remove('loading');
+            btn.classList.add('done');
+            btn.textContent = '✓';
+            setTimeout(() => {
+                btn.classList.remove('done');
+                btn.textContent = 'Ata';
+            }, 2000);
+            showToast('Kategori başarıyla atandı.');
+        } else {
+            btn.classList.remove('loading');
+            btn.textContent = 'Ata';
+            showToast('Hata: ' + response.status, true);
+        }
+    } catch (e) {
+        btn.classList.remove('loading');
+        btn.textContent = 'Ata';
+        showToast('Bağlantı hatası.', true);
+    }
+}
+
+function showDetail(id) {
+    const content = JSON.parse(document.getElementById('content-' + id).textContent);
+    const meta = JSON.parse(document.getElementById('meta-' + id).textContent);
+    document.getElementById('detail-unit').textContent = meta.unit;
+    document.getElementById('detail-date').textContent = meta.date;
+    document.getElementById('detail-content').textContent = content;
+    document.getElementById('detailModal').style.display = 'flex';
+}
+
+function closeDetail() {
+    document.getElementById('detailModal').style.display = 'none';
+}
+
+document.getElementById('detailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDetail();
+});
+</script>
+</body>
+</html>

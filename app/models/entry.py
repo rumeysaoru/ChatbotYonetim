@@ -18,11 +18,19 @@ class Entry(Base):
 
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    faculty_id = Column(Integer, ForeignKey("faculties.id"), nullable=False)
+    working_unit_id = Column(
+        Integer,
+        ForeignKey("working_units.id"),
+        nullable=False,
+    )
 
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
-    ai_suggested_category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    ai_suggested_category_id = Column(
+        Integer,
+        ForeignKey("categories.id"),
+        nullable=True,
+    )
 
     status = Column(String(20), nullable=False, default="pending")
 
@@ -32,15 +40,23 @@ class Entry(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     created_by_user = relationship(
-        "User", back_populates="entries", foreign_keys=[created_by]
+        "User",
+        back_populates="entries",
+        foreign_keys=[created_by],
     )
 
-    faculty = relationship("Faculty", back_populates="entries")
+    working_unit = relationship(
+        "WorkingUnit",
+        back_populates="entries",
+    )
 
     category = relationship(
-        "Category", back_populates="entries", foreign_keys=[category_id]
+        "Category",
+        back_populates="entries",
+        foreign_keys=[category_id],
     )
 
     ai_suggested_category = relationship(
-        "Category", foreign_keys=[ai_suggested_category_id]
+        "Category",
+        foreign_keys=[ai_suggested_category_id],
     )

@@ -9,10 +9,13 @@ import sys
 import os
 
 sys.path.append(os.getcwd())
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
 from app.config import settings
 from app.database import Base
-from app.models.faculty import Faculty
+from app.models.workingUnit import WorkingUnit
 from app.models.user import User
 from app.models.category import Category
 from app.models.entry import Entry
