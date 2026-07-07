@@ -26,7 +26,7 @@ def list_entries(
     entries = (
         db.query(Entry)
         .filter(Entry.created_by == int(user["sub"]))
-        .order_by(Entry.created_at.desc())
+        .order_by(Entry.content.asc())
         .all()
     )
 

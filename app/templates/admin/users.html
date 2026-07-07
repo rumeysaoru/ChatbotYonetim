@@ -97,10 +97,9 @@
         <div class="section-card-header">Yeni Kullanıcı Ekle</div>
         <div class="section-card-body">
             <div style="background:#f0f3f7; border:1px solid #d1d5db; border-radius:3px; padding:14px; margin-bottom:16px;">
-                <label class="form-label">Personel Adı Soyadı (BİDB'den Bilgi Getir)</label>
+                <label class="form-label">Personel E-postası (BİDB'den Bilgi Getir)</label>
                 <div style="display:flex; gap:8px;">
-                    <input type="text" id="lookup-name" class="form-control" style="margin-bottom:0;" placeholder="Ad">
-                    <input type="text" id="lookup-surname" class="form-control" style="margin-bottom:0;" placeholder="Soyad">
+                    <input type="email" id="lookup-email" class="form-control" style="margin-bottom:0;" placeholder="ornek@mu.edu.tr">
                     <button type="button" class="btn-primary-msku" style="width:auto; padding:8px 16px; white-space:nowrap;" onclick="fetchStaffInfo()">Getir</button>
                 </div>
                 <div id="lookup-status" style="font-size:12px; margin-top:6px;"></div>
@@ -109,9 +108,9 @@
             <form method="post" action="/admin/kullanicilar">
                 <input type="hidden" name="username" id="username-input">
                 <label class="form-label">İsim</label>
-                <input type="text" name="name" id="name-input" class="form-control">
+                <input type="text" name="name" id="name-input" class="form-control" readonly style="background:#f3f4f6; cursor:not-allowed;">
                 <label class="form-label">Soyisim</label>
-                <input type="text" name="surname" id="surname-input" class="form-control">
+                <input type="text" name="surname" id="surname-input" class="form-control" readonly style="background:#f3f4f6; cursor:not-allowed;">
                 <label class="form-label">Unvan</label>
                 <input type="text" name="title" id="title-input" class="form-control">
                 <label class="form-label">Çalışılan Birim</label>
@@ -182,16 +181,15 @@
 function toggleNav() { document.getElementById('topbarNav').classList.toggle('open'); }
 
 async function fetchStaffInfo() {
-    const name = document.getElementById("lookup-name").value;
-    const surname = document.getElementById("lookup-surname").value;
+    const email = document.getElementById("lookup-email").value;
     const statusBox = document.getElementById("lookup-status");
-    if (!name || !surname) {
-        statusBox.innerHTML = '<span style="color:#dc2626;">Ad ve soyad yazın.</span>';
+    if (!email) {
+        statusBox.innerHTML = '<span style="color:#dc2626;">E-posta yazın.</span>';
         return;
     }
     statusBox.innerHTML = '<span style="color:#6b7280;">Sorgulanıyor...</span>';
     try {
-        const response = await fetch(`/admin/kullanicilar/sorgula?name=${encodeURIComponent(name)}&surname=${encodeURIComponent(surname)}`);
+        const response = await fetch(`/admin/kullanicilar/sorgula?email=${encodeURIComponent(email)}`);
         const result = await response.json();
         if (!result.success) {
             statusBox.innerHTML = `<span style="color:#dc2626;">${result.message}</span>`;

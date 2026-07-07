@@ -118,7 +118,6 @@
                 <tr>
                     <th>Birim</th>
                     <th>Kategori</th>
-                    <th>Açıklama</th>
                     <th>AI</th>
                     <th>PDF</th>
                 </tr>
@@ -128,12 +127,11 @@
                 <tr>
                     <td>{{ cat.working_unit.name }}</td>
                     <td>{{ cat.name }}</td>
-                    <td>{{ cat.description or "—" }}</td>
                     <td>{% if cat.created_by_ai %}<span class="badge-ai">AI</span>{% else %}—{% endif %}</td>
                     <td><a class="btn-pdf" href="/admin/pdf/{{ cat.id }}">PDF</a></td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5" class="empty-msg">Henüz kategori yok.</td></tr>
+                <tr><td colspan="4" class="empty-msg">Henüz kategori yok.</td></tr>
                 {% endfor %}
             </tbody>
             </table>

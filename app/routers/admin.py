@@ -13,7 +13,7 @@ from app.models.category import Category
 from app.models.entry import Entry
 
 from app.services.pdf_service import generate_category_pdf
-from app.services.staff_lookup_service import lookup_staff_by_name
+from app.services.staff_lookup_service import lookup_staff_by_name, lookup_staff_by_email
 
 router = APIRouter(prefix="/admin")
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -89,7 +89,13 @@ def list_all_entries(
             pass
 
     total = query.count()
-    entries = query.order_by(Entry.created_at.desc(), Entry.id.desc()).offset(offset).limit(per_page).all()
+    entries = (
+        query.join(WorkingUnit, Entry.working_unit_id == WorkingUnit.id)
+        .order_by(WorkingUnit.name.asc(), Entry.content.asc())
+        .offset(offset)
+        .limit(per_page)
+        .all()
+    )
     categories = db.query(Category).all()
     working_units = db.query(WorkingUnit).all()
     total_pages = (total + per_page - 1) // per_page
@@ -306,14 +312,13 @@ def list_users(
 
 @router.get("/kullanicilar/sorgula")
 def lookup_user_info(
-    name: str,
-    surname: str,
+    email: str,
     user: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    staff_info = lookup_staff_by_name(name, surname)
+    staff_info = lookup_staff_by_email(email)
     if not staff_info:
-        return {"success": False, "message": "Bu isim/soyisim için bilgi bulunamadı."}
+        return {"success": False, "message": "Bu e-posta için bilgi bulunamadı."}
 
     working_unit_name = staff_info.get("working_unit")
     working_unit_id = None

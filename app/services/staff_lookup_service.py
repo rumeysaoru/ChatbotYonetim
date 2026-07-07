@@ -83,6 +83,48 @@ def _call_fake_api(name: str, surname: str) -> dict:
     }
 
 
+def _call_fake_api_by_email(email: str) -> dict:
+
+    email_normalized = email.strip().lower()
+
+    for staff in _FAKE_STAFF_DATABASE:
+        if staff["email"].strip().lower() == email_normalized:
+            return {
+                "success": True,
+                "message": None,
+                "data": staff,
+            }
+
+    return {
+        "success": False,
+        "message": "Bu e-posta için personel bulunamadı.",
+        "data": None,
+    }
+
+
+def lookup_staff_by_email(email: str) -> dict | None:
+
+    raw_response = _call_fake_api_by_email(email)
+
+    if not raw_response.get("success"):
+        return None
+
+    data = raw_response.get("data")
+    if not data:
+        return None
+
+    return {
+        "name": data.get("name"),
+        "surname": data.get("surname"),
+        "title": data.get("title"),
+        "title_english": data.get("titleEnglish"),
+        "working_unit": data.get("workingUnit"),
+        "email": data.get("email"),
+        "office_phone": data.get("officePhone"),
+        "status": data.get("status"),
+    }
+
+
 def lookup_staff_by_name(name: str, surname: str) -> dict | None:
   
     raw_response = _call_fake_api(name, surname)
