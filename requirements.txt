@@ -4,7 +4,8 @@ jinja2
 sqlalchemy
 alembic
 passlib[bcrypt]
-bcrypt==4.0.1python-jose[cryptography]
+bcrypt==4.0.1
+python-jose[cryptography]
 python-multipart
 python-dotenv
 pydantic-settings

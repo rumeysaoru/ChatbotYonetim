@@ -1,0 +1,24 @@
+# Sanal ortam
+.venv/
+.venv-linux/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Ortam değişkenleri (gizli anahtarlar burada, asla paylaşma/commitleme)
+.env
+
+# Veritabanı (istersen tutabilirsin, ama genelde local db commitlenmez)
+*.db
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Alembic pycache
+alembic/__pycache__/
