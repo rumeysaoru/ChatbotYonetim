@@ -15,3 +15,5 @@ matplotlib
 requests
 google-genai
 slowapi
+itsdangerous
+pyodbc
