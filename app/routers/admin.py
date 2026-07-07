@@ -25,7 +25,7 @@ def dashboard(
     from sqlalchemy import func
 
     total_entries = db.query(Entry).count()
-    pending = db.query(Entry).filter(Entry.status == " pending").count()
+    pending = db.query(Entry).filter(Entry.status.in_(["pending", "categorized"])).count()
     categorized = db.query(Entry).filter(Entry.status == "categorized").count()
     approved = db.query(Entry).filter(Entry.status == "approved").count()
     total_units = db.query(WorkingUnit).count()
@@ -153,7 +153,7 @@ def list_categories(
     per_page = 20
     offset = (page - 1) * per_page
     total = db.query(Category).count()
-    categories = db.query(Category).offset(offset).limit(per_page).all()
+    categories = db.query(Category).order_by(Category.id).offset(offset).limit(per_page).all()
     working_units = db.query(WorkingUnit).all()
     total_pages = (total + per_page - 1) // per_page
 
@@ -252,7 +252,7 @@ def list_working_units(
     per_page = 20
     offset = (page - 1) * per_page
     total = db.query(WorkingUnit).count()
-    working_units = db.query(WorkingUnit).offset(offset).limit(per_page).all()
+    working_units = db.query(WorkingUnit).order_by(WorkingUnit.id).offset(offset).limit(per_page).all()
     total_pages = (total + per_page - 1) // per_page
 
     return templates.TemplateResponse(
@@ -293,7 +293,7 @@ def list_users(
     per_page = 20
     offset = (page - 1) * per_page
     total = db.query(User).count()
-    users = db.query(User).offset(offset).limit(per_page).all()
+    users = db.query(User).order_by(User.id).offset(offset).limit(per_page).all()
     working_units = db.query(WorkingUnit).all()
     total_pages = (total + per_page - 1) // per_page
 
